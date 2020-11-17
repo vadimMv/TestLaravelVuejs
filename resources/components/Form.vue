@@ -35,7 +35,7 @@
           :state="validationTelephone"
         ></b-form-input>
         <b-form-invalid-feedback :state="validationTelephone">
-          Telephone must field , Please enter valid number ( Only 9 digits )
+          Telephone must field , Please enter valid number ( 10 digits )
         </b-form-invalid-feedback>
         <b-form-valid-feedback :state="validationTelephone">
           Looks Good.
@@ -77,9 +77,9 @@
           Looks Good.
         </b-form-valid-feedback>
       </b-form-group>
-
-      <b-button type="submit" variant="primary">Submit</b-button>
-      
+      <b-button type="submit" variant="primary" :disabled="!isActive"
+        >Send</b-button
+      >
     </b-form>
   </div>
 </template>
@@ -95,6 +95,7 @@ export default {
   data() {
     return {
       showValidation: false,
+      isActive: true,
       form: {
         email: "",
         name: "",
@@ -106,9 +107,20 @@ export default {
   methods: {
     async onSubmit(evt) {
       evt.preventDefault();
-      //validation
-      if (true) {
-        const data = {
+      this.showMessage({
+        error: false,
+        success: false,
+        text: "",
+      });
+      this.showValidation = true;
+      if (
+        this.validationId &&
+        this.validationName &&
+        this.validationEmail &&
+        this.validationTelephone
+      ) {
+        this.isActive = false;
+        const obj = {
           email: this.form.email,
           id: this.form.id,
           name: this.form.name,
@@ -116,9 +128,8 @@ export default {
         };
         const response = await axios.post(
           "https://ibell.frb.io/api/test/getJson",
-          data
+          obj
         );
-        console.log(response);
         const { status, hbJson, errmsg } = response.data;
 
         if (status === "success") {
@@ -126,14 +137,34 @@ export default {
             .filter((value) => Array.isArray(value))
             .reduce((res, val) => res.concat(val), [])
             .reduce((acc, val) => acc + Number(val.premia), 0);
-
-          const response2 = await axios.post(
-            "https://ibell.frb.io/zapier/add/lead/38754",
-            data
-          );
-          console.log(response2);
+          obj.premia = countPremia;
+          const responseApi = await axios.post("/api/lead", obj);
+          if (responseApi.data.message === "OK") {
+            this.showMessage({
+              error: false,
+              success: true,
+              text: "Successfully sended !",
+            });
+          }
         }
+
+        if (status === "failure") {
+          this.showMessage({
+            error: true,
+            success: false,
+            text: errmsg || "server error",
+          });
+        }
+        this.form.email = "";
+        this.form.id = "";
+        this.form.name = "";
+        this.form.telephone = "";
+        this.showValidation = false;
+        this.isActive = true;
       }
+    },
+    showMessage(data) {
+      this.$emit("server-message", data);
     },
   },
   computed: {

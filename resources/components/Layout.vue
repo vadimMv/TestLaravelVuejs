@@ -1,10 +1,10 @@
 <template>
   <b-container class="bv-example-row">
-    <h1 class="text-center">Client Form</h1>
-    <Alert />
+    <h1 class="text-center">Lead Form</h1>
     <b-row align-h="center">
       <b-col cols="6">
-        <Form />
+        <Alert v-bind:message="message" />
+        <Form v-on:server-message="handler" />
       </b-col>
     </b-row>
   </b-container>
@@ -16,7 +16,23 @@ export default {
   name: "Layout",
   components: {
     Form,
-    Alert
+    Alert,
+  },
+  data() {
+    return {
+      message: {
+        text: "",
+        error: false,
+        success: false,
+      },
+    };
+  },
+  methods: {
+    handler(mess) {
+      this.message.text = mess.text;
+      this.message.error = mess.error;
+      this.message.success = mess.success;
+    },
   },
 };
 </script>
