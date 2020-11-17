@@ -2,7 +2,7 @@
 
 ### Simple start
 ```
+ composer install
  php artisan serve
-
-npm install && npm run dev
+ npm install && npm run dev
 ```
